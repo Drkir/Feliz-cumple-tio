@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¡Feliz Cumpleaños! 🎾</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  background:#0a1a0a;
+  min-height:100vh;
+  overflow-x:hidden;
+  font-family:'Space Mono',monospace;
+  cursor:none;
+}
+
+#cursor{
+  position:fixed;
+  width:20px;height:20px;
+  background:#c8f53c;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:transform 0.1s;
+  mix-blend-mode:difference;
+}
+
+canvas#bg{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  z-index:0;
+  pointer-events:none;
+}
+
+#welcome-overlay{
+  position:fixed;
+  inset:0;
+  background:#0a1a0a;
+  z-index:1000;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2rem;
+}
+
+.ov-racket{
+  font-size:8rem;
+  animation:spin 3s linear infinite;
+  display:block;
+}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+.ov-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2rem,8vw,5rem);
+  color:#c8f53c;
+  letter-spacing:0.2em;
+  text-align:center;
+  line-height:1;
+}
+
+.ov-sub{
+  font-family:'Space Mono',monospace;
+  font-size:0.85rem;
+  color:#4a7c4a;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+}
+
+#enter-btn{
+  margin-top:1rem;
+  padding:1rem 3rem;
+  background:transparent;
+  border:2px solid #c8f53c;
+  color:#c8f53c;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.5rem;
+  letter-spacing:0.3em;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.3s;
+}
+#enter-btn::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:#c8f53c;
+  transform:translateX(-101%);
+  transition:transform 0.3s;
+  z-index:-1;
+}
+#enter-btn:hover{color:#0a1a0a;}
+#enter-btn:hover::before{transform:translateX(0);}
+
+#main{
+  position:relative;
+  z-index:2;
+  display:none;
+  min-height:100vh;
+}
+
+#hero{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:2rem;
+  text-align:center;
+  position:relative;
+}
+
+.score-board{
+  border:3px solid #2d4a2d;
+  padding:0.3rem 2rem;
+  display:inline-block;
+  margin-bottom:2rem;
+  position:relative;
+}
+.score-board::before,.score-board::after{
+  content:'●';
+  position:absolute;
+  top:50%;transform:translateY(-50%);
+  color:#c8f53c;
+  font-size:0.5rem;
+}
+.score-board::before{left:0.5rem;}
+.score-board::after{right:0.5rem;}
+.score-board span{
+  font-size:0.7rem;
+  letter-spacing:0.4em;
+  color:#4a7c4a;
+  text-transform:uppercase;
+}
+
+h1.main-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(5rem,20vw,14rem);
+  color:#c8f53c;
+  line-height:0.85;
+  letter-spacing:0.05em;
+  animation:titleIn 1s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes titleIn{
+  from{opacity:0;transform:translateY(60px) skewY(3deg);}
+  to{opacity:1;transform:translateY(0) skewY(0);}
+}
+
+.years-stripe{
+  display:flex;
+  align-items:center;
+  gap:1.5rem;
+  margin:1.5rem 0;
+}
+.stripe-line{height:2px;flex:1;background:linear-gradient(to right,transparent,#c8f53c);}
+.stripe-line.r{background:linear-gradient(to left,transparent,#c8f53c);}
+.years-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3rem,10vw,7rem);
+  color:#fff;
+  letter-spacing:0.1em;
+}
+
+.sub-italic{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:clamp(1rem,3vw,1.6rem);
+  color:#8ab88a;
+  margin-bottom:3rem;
+}
+
+#court-section{
+  padding:4rem 2rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.court-container{
+  width:min(700px,90vw);
+  position:relative;
+}
+
+.court{
+  width:100%;
+  aspect-ratio:2/1;
+  background:#1a4a1a;
+  border:3px solid #c8f53c;
+  border-radius:4px;
+  position:relative;
+  overflow:hidden;
+  cursor:crosshair;
+}
+
+.court-lines{
+  position:absolute;inset:0;
+  pointer-events:none;
+}
+
+.court-ball{
+  position:absolute;
+  width:28px;height:28px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#e8f07a,#b8cc1a);
+  border:2px solid #8aaa00;
+  transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+.court-ball.animate{
+  animation:ballBounce 0.4s cubic-bezier(0.5,0,1,0.5);
+}
+@keyframes ballBounce{
+  0%{transform:translate(-50%,-50%) scale(1);}
+  30%{transform:translate(-50%,-70%) scale(0.9);}
+  60%{transform:translate(-50%,-50%) scale(1.1);}
+  100%{transform:translate(-50%,-50%) scale(1);}
+}
+
+.court-label{
+  font-size:0.6rem;
+  letter-spacing:0.3em;
+  color:#4a7c4a;
+  text-align:center;
+  margin-top:0.8rem;
+  text-transform:uppercase;
+}
+
+#stats{
+  padding:4rem 2rem;
+  max-width:900px;
+  margin:0 auto;
+  width:100%;
+}
+
+.stats-header{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.5rem;
+  color:#c8f53c;
+  letter-spacing:0.2em;
+  margin-bottom:2rem;
+  text-align:center;
+}
+
+.cards-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1.5rem;
+}
+
+.stat-card{
+  background:#0f2a0f;
+  border:1.5px solid #2d4a2d;
+  padding:1.5rem;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  transition:border-color 0.3s,transform 0.2s;
+}
+.stat-card:hover{
+  border-color:#c8f53c;
+  transform:translateY(-4px);
+}
+.stat-card::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:2px;
+  background:#c8f53c;
+  transform:scaleX(0);
+  transition:transform 0.3s;
+  transform-origin:left;
+}
+.stat-card:hover::after{transform:scaleX(1);}
+
+.card-icon{font-size:1.8rem;margin-bottom:0.8rem;display:block;}
+.card-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3rem;
+  color:#c8f53c;
+  line-height:1;
+}
+.card-label{
+  font-size:0.65rem;
+  letter-spacing:0.2em;
+  color:#4a7c4a;
+  text-transform:uppercase;
+  margin-top:0.3rem;
+}
+.card-desc{
+  font-size:0.75rem;
+  color:#8ab88a;
+  margin-top:0.8rem;
+  line-height:1.5;
+  font-style:italic;
+  font-family:'Playfair Display',serif;
+}
+
+#timeline{
+  padding:4rem 2rem;
+  max-width:700px;
+  margin:0 auto;
+  width:100%;
+}
+
+.tl-header{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.5rem;
+  color:#c8f53c;
+  letter-spacing:0.2em;
+  margin-bottom:3rem;
+  text-align:center;
+}
+
+.tl-track{
+  position:relative;
+  padding-left:2rem;
+}
+.tl-track::before{
+  content:'';
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:2px;
+  background:linear-gradient(to bottom,#c8f53c,transparent);
+}
+
+.tl-item{
+  position:relative;
+  margin-bottom:2.5rem;
+  opacity:0;
+  transform:translateX(30px);
+  transition:opacity 0.6s,transform 0.6s;
+}
+.tl-item.visible{opacity:1;transform:translateX(0);}
+
+.tl-dot{
+  position:absolute;
+  left:-2.35rem;
+  top:0.25rem;
+  width:14px;height:14px;
+  background:#0a1a0a;
+  border:2px solid #c8f53c;
+  border-radius:50%;
+}
+.tl-dot::after{
+  content:'';
+  position:absolute;
+  inset:2px;
+  background:#c8f53c;
+  border-radius:50%;
+  transform:scale(0);
+  transition:transform 0.3s;
+}
+.tl-item.visible .tl-dot::after{transform:scale(1);}
+
+.tl-year{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.2rem;
+  color:#4a7c4a;
+  letter-spacing:0.2em;
+}
+.tl-text{
+  font-size:0.85rem;
+  color:#8ab88a;
+  margin-top:0.3rem;
+  line-height:1.6;
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+}
+
+#score-section{
+  padding:4rem 2rem;
+  text-align:center;
+}
+
+.score-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.5rem;
+  color:#c8f53c;
+  letter-spacing:0.2em;
+  margin-bottom:2rem;
+}
+
+.scoreboard{
+  display:inline-flex;
+  gap:0;
+  border:2px solid #c8f53c;
+  overflow:hidden;
+  margin-bottom:2rem;
+}
+.score-cell{
+  padding:1rem 2rem;
+  border-right:1px solid #2d4a2d;
+  min-width:100px;
+}
+.score-cell:last-child{border-right:none;}
+.score-cell-label{
+  font-size:0.6rem;
+  letter-spacing:0.3em;
+  color:#4a7c4a;
+  text-transform:uppercase;
+  margin-bottom:0.5rem;
+}
+.score-cell-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3rem;
+  color:#c8f53c;
+  line-height:1;
+  transition:all 0.3s;
+}
+
+.love-btn{
+  display:block;
+  margin:0 auto;
+  padding:0.8rem 2.5rem;
+  background:#c8f53c;
+  border:none;
+  color:#0a1a0a;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.2rem;
+  letter-spacing:0.2em;
+  cursor:pointer;
+  transition:transform 0.1s,background 0.2s;
+}
+.love-btn:hover{background:#d4ff44;}
+.love-btn:active{transform:scale(0.97);}
+
+#final{
+  padding:5rem 2rem;
+  text-align:center;
+}
+
+.final-big{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2rem,8vw,6rem);
+  color:#fff;
+  letter-spacing:0.1em;
+  line-height:1;
+  margin-bottom:1rem;
+}
+.final-big span{color:#c8f53c;}
+
+.final-sub{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:1.1rem;
+  color:#4a7c4a;
+  margin-bottom:3rem;
+}
+
+.confetti-btn{
+  padding:1rem 3rem;
+  background:transparent;
+  border:2px solid #c8f53c;
+  color:#c8f53c;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.4rem;
+  letter-spacing:0.3em;
+  cursor:pointer;
+  transition:all 0.3s;
+}
+.confetti-btn:hover{background:#c8f53c;color:#0a1a0a;}
+
+#music-bar{
+  position:fixed;
+  bottom:1.5rem;right:1.5rem;
+  z-index:500;
+  background:#0f2a0f;
+  border:1.5px solid #2d4a2d;
+  padding:0.6rem 1rem;
+  display:flex;
+  align-items:center;
+  gap:0.6rem;
+  cursor:pointer;
+  transition:border-color 0.3s;
+}
+#music-bar:hover{border-color:#c8f53c;}
+.music-label{font-size:0.6rem;letter-spacing:0.2em;color:#4a7c4a;text-transform:uppercase;}
+.bars{display:flex;gap:2px;align-items:flex-end;height:16px;}
+.bar{width:3px;background:#c8f53c;border-radius:1px;}
+.bar.b1{height:6px;animation:barBounce 0.6s ease-in-out infinite alternate;}
+.bar.b2{height:12px;animation:barBounce 0.6s ease-in-out 0.1s infinite alternate;}
+.bar.b3{height:8px;animation:barBounce 0.6s ease-in-out 0.2s infinite alternate;}
+.bar.b4{height:10px;animation:barBounce 0.6s ease-in-out 0.15s infinite alternate;}
+@keyframes barBounce{from{transform:scaleY(1);}to{transform:scaleY(0.3);}}
+.paused .bar{animation-play-state:paused;}
+
+@keyframes popUp{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(0.5);}
+  60%{opacity:1;transform:translate(-50%,-120%) scale(1.2);}
+  100%{opacity:0;transform:translate(-50%,-200%) scale(1);}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<canvas id="bg"></canvas>
+
+<div id="welcome-overlay">
+  <span class="ov-racket">🎾</span>
+  <div class="ov-title">¡Feliz<br>Cumpleaños!</div>
+  <div class="ov-sub">Una sorpresa para ti</div>
+  <button id="enter-btn" onclick="enterSite()">ABRIR REGALO ↗</button>
+</div>
+
+<div id="music-bar" onclick="toggleMusic()" class="paused">
+  <div class="bars">
+    <div class="bar b1"></div>
+    <div class="bar b2"></div>
+    <div class="bar b3"></div>
+    <div class="bar b4"></div>
+  </div>
+  <span class="music-label" id="music-label">Reproducir</span>
+</div>
+
+<div id="main">
+
+  <section id="hero">
+    <div class="score-board"><span>Temporada especial · 1985 — 2025</span></div>
+    <h1 class="main-title">FELIZ<br>CUMPLE</h1>
+    <div class="years-stripe">
+      <div class="stripe-line"></div>
+      <div class="years-num">40</div>
+      <div class="stripe-line r"></div>
+    </div>
+    <p class="sub-italic">Game, set y cuatro décadas magníficas</p>
+    <div style="font-size:0.7rem;letter-spacing:0.3em;color:#2d4a2d;margin-top:2rem;">↓ SCROLL ↓</div>
+  </section>
+
+  <section id="court-section">
+    <div class="court-container">
+      <div class="court" id="court" onclick="smashBall(event)">
+        <svg class="court-lines" viewBox="0 0 600 300" style="width:100%;height:100%">
+          <rect x="2" y="2" width="596" height="296" fill="none" stroke="#2d6a2d" stroke-width="2"/>
+          <line x1="300" y1="2" x2="300" y2="298" stroke="#2d6a2d" stroke-width="2"/>
+          <line x1="2" y1="150" x2="598" y2="150" stroke="#2d6a2d" stroke-width="2"/>
+          <line x1="110" y1="2" x2="110" y2="298" stroke="#1a5a1a" stroke-width="1.5"/>
+          <line x1="490" y1="2" x2="490" y2="298" stroke="#1a5a1a" stroke-width="1.5"/>
+          <line x1="110" y1="50" x2="490" y2="50" stroke="#1a5a1a" stroke-width="1"/>
+          <line x1="110" y1="250" x2="490" y2="250" stroke="#1a5a1a" stroke-width="1"/>
+          <rect x="295" y="0" width="10" height="300" fill="#2d6a2d"/>
+          <line x1="300" y1="0" x2="300" y2="300" stroke="#c8f53c" stroke-width="2" stroke-dasharray="8,4"/>
+        </svg>
+        <div class="court-ball" id="court-ball" style="left:50%;top:50%"></div>
+      </div>
+      <p class="court-label">🎾 Haz clic en la cancha para hacer un smash</p>
+    </div>
+  </section>
+
+  <section id="stats">
+    <div class="stats-header">40 AÑOS DE STATS</div>
+    <div class="cards-grid">
+      <div class="stat-card" onclick="flipCard(this)">
+        <span class="card-icon">🏆</span>
+        <div class="card-num" data-count="40">0</div>
+        <div class="card-label">Años en la cancha de la vida</div>
+        <div class="card-desc">Cada año, un grand slam ganado.</div>
+      </div>
+      <div class="stat-card" onclick="flipCard(this)">
+        <span class="card-icon">🎾</span>
+        <div class="card-num" data-count="1000">0</div>
+        <div class="card-label">Smashes imposibles</div>
+        <div class="card-desc">Los que sólo tú sabes ejecutar.</div>
+      </div>
+      <div class="stat-card" onclick="flipCard(this)">
+        <span class="card-icon">⚡</span>
+        <div class="card-num" data-count="40">0</div>
+        <div class="card-label">Nivel de energía eterno</div>
+        <div class="card-desc">El marcador nunca baja.</div>
+      </div>
+      <div class="stat-card" onclick="flipCard(this)">
+        <span class="card-icon">🌟</span>
+        <div class="card-num" data-count="1">0</div>
+        <div class="card-label">Puesto en el ranking familiar</div>
+        <div class="card-desc">Número 1, sin discusión.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="timeline">
+    <div class="tl-header">CRONOLOGÍA</div>
+    <div class="tl-track">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1985 — MATCH POINT INICIAL</div>
+        <div class="tl-text">El mundo recibió un jugador nuevo. La cancha ya no sería la misma.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1990s — PRIMER SET</div>
+        <div class="tl-text">Los primeros años de juego. Corriendo sin parar, aprendiendo cada golpe.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2000s — SEGUNDO SET</div>
+        <div class="tl-text">El juego maduró. La táctica se perfeccionó. Los errores enseñaron más que los puntos.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2010s — TERCER SET</div>
+        <div class="tl-text">La experiencia convirtió cada partido en una obra de arte.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2025 — MATCH POINT: 40</div>
+        <div class="tl-text">Un nuevo set empieza. Y como todo gran tenista sabe: los mejores juegos están por venir.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="score-section">
+    <div class="score-title">TU MARCADOR DE VIDA</div>
+    <div class="scoreboard">
+      <div class="score-cell">
+        <div class="score-cell-label">Sets</div>
+        <div class="score-cell-val" id="sc-sets">4</div>
+      </div>
+      <div class="score-cell">
+        <div class="score-cell-label">Games</div>
+        <div class="score-cell-val" id="sc-games">0</div>
+      </div>
+      <div class="score-cell">
+        <div class="score-cell-label">Puntos</div>
+        <div class="score-cell-val" id="sc-pts">LOVE</div>
+      </div>
+    </div>
+    <button class="love-btn" onclick="addPoint()">🎾 SUMAR PUNTO</button>
+    <p style="font-size:0.65rem;letter-spacing:0.2em;color:#2d4a2d;margin-top:1rem;text-transform:uppercase;">Haz clic para celebrar</p>
+  </section>
+
+  <section id="final">
+    <div class="final-big">QUE LOS PRÓXIMOS<br><span>40</span><br>SEAN AÚN MEJORES</div>
+    <p class="final-sub">Con mucho cariño, en tu día especial</p>
+    <button class="confetti-btn" onclick="bigCelebration()">🎉 ¡CELEBRAR!</button>
+  </section>
+
+</div>
+
+<script>
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
+
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let W, H;
+const balls = [];
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function makeBall(){
+  const size = 14 + Math.random()*20;
+  return {
+    x: Math.random()*W,
+    y: H + size,
+    vx: (Math.random()-0.5)*1.2,
+    vy: -(0.8 + Math.random()*1.5),
+    size,
+    rot: Math.random()*Math.PI*2,
+    rotV: (Math.random()-0.5)*0.04,
+    opacity: 0.15 + Math.random()*0.2,
+    type: Math.random()>0.3 ? 'ball' : (Math.random()>0.5 ? 'star' : 'num')
+  };
+}
+
+for(let i=0;i<18;i++){
+  const b = makeBall();
+  b.y = Math.random()*H;
+  balls.push(b);
+}
+
+function drawTennisBall(cx,cy,r,rot,op){
+  ctx.save();
+  ctx.globalAlpha = op;
+  ctx.translate(cx,cy);
+  ctx.rotate(rot);
+  ctx.beginPath();
+  ctx.arc(0,0,r,0,Math.PI*2);
+  ctx.fillStyle = '#b8cc1a';
+  ctx.fill();
+  ctx.strokeStyle = '#0a1a0a';
+  ctx.lineWidth = r*0.08;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0,0,r*0.82,Math.PI*0.2,Math.PI*0.8);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = r*0.12;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0,0,r*0.82,Math.PI*1.2,Math.PI*1.8);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = r*0.12;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function bgLoop(){
+  ctx.clearRect(0,0,W,H);
+  if(Math.random()<0.015) balls.push(makeBall());
+  for(let i=balls.length-1;i>=0;i--){
+    const b = balls[i];
+    b.x += b.vx; b.y += b.vy; b.rot += b.rotV;
+    if(b.type==='ball'){
+      drawTennisBall(b.x,b.y,b.size/2,b.rot,b.opacity);
+    } else if(b.type==='star'){
+      ctx.save();ctx.globalAlpha=b.opacity;
+      ctx.translate(b.x,b.y);ctx.rotate(b.rot);
+      ctx.font=`${b.size}px serif`;ctx.fillStyle='#c8f53c';
+      ctx.textAlign='center';ctx.fillText('✦',0,b.size/3);
+      ctx.restore();
+    } else {
+      ctx.save();ctx.globalAlpha=b.opacity;
+      ctx.font=`bold ${b.size}px 'Bebas Neue',sans-serif`;
+      ctx.fillStyle='#2d4a2d';ctx.textAlign='center';
+      ctx.fillText('40',b.x,b.y);ctx.restore();
+    }
+    if(b.y < -60 || b.x < -60 || b.x > W+60) balls.splice(i,1);
+  }
+  requestAnimationFrame(bgLoop);
+}
+bgLoop();
+
+let audioCtx = null;
+let isPlaying = false;
+let musicInterval = null;
+
+const notes = {
+  G4:392,A4:440,B4:494,C5:523,D5:587,E5:659,F5:698,G5:784
+};
+
+const hbSong = [
+  [notes.G4,0.5],[notes.G4,0.3],
+  [notes.A4,0.8],[notes.G4,0.8],[notes.C5,0.8],[notes.B4,1.4],
+  [notes.G4,0.5],[notes.G4,0.3],
+  [notes.A4,0.8],[notes.G4,0.8],[notes.D5,0.8],[notes.C5,1.4],
+  [notes.G4,0.5],[notes.G4,0.3],
+  [notes.G5,0.8],[notes.E5,0.8],[notes.C5,0.8],[notes.B4,0.8],[notes.A4,1.0],
+  [notes.F5,0.5],[notes.F5,0.3],
+  [notes.E5,0.8],[notes.C5,0.8],[notes.D5,0.8],[notes.C5,1.8]
+];
+
+function playNote(freq, startTime, duration){
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(0.3, startTime+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime+duration*0.9);
+  osc.start(startTime);
+  osc.stop(startTime+duration);
+}
+
+function playSong(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  let t = audioCtx.currentTime + 0.1;
+  for(const [freq, dur] of hbSong){
+    playNote(freq, t, dur*0.5);
+    t += dur*0.5 + 0.03;
+  }
+}
+
+function startMusic(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  playSong();
+  musicInterval = setInterval(()=>{ if(isPlaying) playSong(); }, 9000);
+}
+
+function toggleMusic(){
+  const bar = document.getElementById('music-bar');
+  const lbl = document.getElementById('music-label');
+  if(!isPlaying){
+    isPlaying = true;
+    bar.classList.remove('paused');
+    lbl.textContent = 'Sonando';
+    startMusic();
+  } else {
+    isPlaying = false;
+    bar.classList.add('paused');
+    lbl.textContent = 'Reproducir';
+    clearInterval(musicInterval);
+  }
+}
+
+function enterSite(){
+  const ov = document.getElementById('welcome-overlay');
+  ov.style.transition = 'opacity 0.8s';
+  ov.style.opacity = '0';
+  setTimeout(()=>{
+    ov.style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    isPlaying = true;
+    document.getElementById('music-bar').classList.remove('paused');
+    document.getElementById('music-label').textContent = 'Sonando';
+    startMusic();
+    startCounters();
+    initTimeline();
+  }, 800);
+}
+
+function smashBall(e){
+  const court = document.getElementById('court');
+  const ball = document.getElementById('court-ball');
+  const rect = court.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+  const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+  ball.style.left = x + '%';
+  ball.style.top = y + '%';
+  ball.classList.remove('animate');
+  void ball.offsetWidth;
+  ball.classList.add('animate');
+  spawnPopText(e.clientX, e.clientY, ['¡ACE!','¡SMASH!','¡WINNER!','¡40!','🎾'][Math.floor(Math.random()*5)]);
+}
+
+function spawnPopText(x, y, txt){
+  const el = document.createElement('div');
+  el.textContent = txt;
+  el.style.cssText = `position:fixed;left:${x}px;top:${y}px;color:#c8f53c;font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.2em;pointer-events:none;z-index:800;transform:translate(-50%,-50%);animation:popUp 0.8s forwards;`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+}
+
+function startCounters(){
+  document.querySelectorAll('[data-count]').forEach(el=>{
+    const target = parseInt(el.dataset.count);
+    let cur = 0;
+    const step = Math.max(1, Math.floor(target/40));
+    const iv = setInterval(()=>{
+      cur = Math.min(cur+step, target);
+      el.textContent = cur.toLocaleString();
+      if(cur>=target) clearInterval(iv);
+    }, 40);
+  });
+}
+
+function initTimeline(){
+  const items = document.querySelectorAll('.tl-item');
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach((e,i)=>{
+      if(e.isIntersecting){
+        setTimeout(()=>e.target.classList.add('visible'), i*150);
+      }
+    });
+  },{threshold:0.2});
+  items.forEach(it=>obs.observe(it));
+}
+
+const ptSeq = ['15','30','40','DEUCE','ADV','GAME! 🏆'];
+let ptIdx = 0, gamesVal = 0;
+function addPoint(){
+  ptIdx++;
+  if(ptIdx >= ptSeq.length) ptIdx = 0;
+  const pts = document.getElementById('sc-pts');
+  const games = document.getElementById('sc-games');
+  pts.style.transform = 'scale(1.3)';
+  pts.style.color = '#fff';
+  setTimeout(()=>{pts.style.transform='';pts.style.color='#c8f53c';}, 200);
+  pts.textContent = ptSeq[ptIdx];
+  if(ptSeq[ptIdx]==='GAME! 🏆'){
+    gamesVal++;
+    games.textContent = gamesVal;
+    setTimeout(()=>{ ptIdx=-1; pts.textContent='LOVE'; }, 1200);
+  }
+  spawnPopText(
+    window.innerWidth/2, window.innerHeight/2,
+    ['+1','🎾','¡SÍ!','👑','🎊'][Math.floor(Math.random()*5)]
+  );
+}
+
+function bigCelebration(){
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const x = Math.random()*window.innerWidth;
+      const y = Math.random()*window.innerHeight;
+      spawnPopText(x, y, ['🎾','🎊','⭐','🏆','40','✦','🎉'][Math.floor(Math.random()*7)]);
+    }, i*60);
+  }
+}
+
+function flipCard(el){
+  el.style.transform = 'scale(1.05) rotateY(5deg)';
+  setTimeout(()=>{el.style.transform='';}, 300);
+}
+</script>
+</body>
+</html>
